@@ -1,3 +1,5 @@
+//test
+
 var XHR = ('onload' in new XMLHttpRequest()) ? XMLHttpRequest : XDomainRequest;
 var xhr = new XHR();
 xhr.open('GET', window.location, true);
