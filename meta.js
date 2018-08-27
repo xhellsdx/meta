@@ -1,5 +1,3 @@
-//test
-
 var XHR = ('onload' in new XMLHttpRequest()) ? XMLHttpRequest : XDomainRequest;
 var xhr = new XHR();
 xhr.open('GET', window.location, true);
@@ -234,10 +232,10 @@ xhr.onload = function() {
 		h16Str += '<li style="margin-left:'+((hd[i]['head']-1)*20)+'px"'+((hd[i]['error'])?' class="red" title="'+hd[i]['error']+'"':'')+'><span>H'+hd[i]['head']+' - '+hd[i]['text']+'</span></li>';
 	}
 	openLinks += '<p>';
-	openLinks += '<b class="openLinksB" onclick="javascript:(function(){var pxexternallinks=document.querySelector(\'ol.pxexternallinks\'),pxinternallinks=document.querySelector(\'ol.pxinternallinks\'),pxalttitlelinks=document.querySelector(\'ol.pxalttitlelinks\'),pxh16links=document.querySelector(\'ol.pxh16links\');if(pxexternallinks.classList.contains(\'active\')){pxexternallinks.classList.remove(\'active\');pxexternallinks.style.display=\'none\';}else{pxexternallinks.classList.add(\'active\');pxexternallinks.style.display=\'block\';} pxinternallinks.style.display=\'none\';pxinternallinks.classList.remove(\'active\');pxalttitlelinks.style.display=\'none\';pxalttitlelinks.classList.remove(\'active\');pxh16links.style.display=\'none\';pxh16links.classList.remove(\'active\');})();">External Links ('+externalLinksCnt+')</b>&nbsp;&nbsp;|&nbsp;&nbsp;';
-	openLinks += '<b class="openLinksB" onclick="javascript:(function(){var pxexternallinks=document.querySelector(\'ol.pxexternallinks\'),pxinternallinks=document.querySelector(\'ol.pxinternallinks\'),pxalttitlelinks=document.querySelector(\'ol.pxalttitlelinks\'),pxh16links=document.querySelector(\'ol.pxh16links\');if(pxinternallinks.classList.contains(\'active\')){pxinternallinks.classList.remove(\'active\');pxinternallinks.style.display=\'none\';}else{pxinternallinks.classList.add(\'active\');pxinternallinks.style.display=\'block\';} pxexternallinks.style.display=\'none\';pxexternallinks.classList.remove(\'active\');pxalttitlelinks.style.display=\'none\';pxalttitlelinks.classList.remove(\'active\');pxh16links.style.display=\'none\';pxh16links.classList.remove(\'active\');})();">Internal Links ('+internalLinksCnt+')</b>&nbsp;&nbsp;|&nbsp;&nbsp;';
-	openLinks += '<b class="openLinksB" onclick="javascript:(function(){var pxexternallinks=document.querySelector(\'ol.pxexternallinks\'),pxinternallinks=document.querySelector(\'ol.pxinternallinks\'),pxalttitlelinks=document.querySelector(\'ol.pxalttitlelinks\'),pxh16links=document.querySelector(\'ol.pxh16links\');if(pxalttitlelinks.classList.contains(\'active\')){pxalttitlelinks.classList.remove(\'active\');pxalttitlelinks.style.display=\'none\';}else{pxalttitlelinks.classList.add(\'active\');pxalttitlelinks.style.display=\'block\';} pxexternallinks.style.display=\'none\';pxexternallinks.classList.remove(\'active\');pxinternallinks.style.display=\'none\';pxinternallinks.classList.remove(\'active\');pxh16links.style.display=\'none\';pxh16links.classList.remove(\'active\');})();">Img alt/title ('+altCnt+')</b>&nbsp;&nbsp;|&nbsp;&nbsp;';
-	openLinks += '<b class="openLinksB" onclick="javascript:(function(){var pxexternallinks=document.querySelector(\'ol.pxexternallinks\'),pxinternallinks=document.querySelector(\'ol.pxinternallinks\'),pxalttitlelinks=document.querySelector(\'ol.pxalttitlelinks\'),pxh16links=document.querySelector(\'ol.pxh16links\');if(pxh16links.classList.contains(\'active\')){pxh16links.classList.remove(\'active\');pxh16links.style.display=\'none\';}else{pxh16links.classList.add(\'active\');pxh16links.style.display=\'block\';} pxexternallinks.style.display=\'none\';pxexternallinks.classList.remove(\'active\');pxinternallinks.style.display=\'none\';pxinternallinks.classList.remove(\'active\');pxalttitlelinks.style.display=\'none\';pxalttitlelinks.classList.remove(\'active\');})();">H1-H6 '+((hErr)?'<span class="red">('+hd.length+')':'('+hd.length+')')+'</b>';
+	openLinks += '<b class="openLinksB" data="pxexternallinks">External Links ('+externalLinksCnt+')</b>&nbsp;&nbsp;|&nbsp;&nbsp;';
+	openLinks += '<b class="openLinksB" data="pxinternallinks">Internal Links ('+internalLinksCnt+')</b>&nbsp;&nbsp;|&nbsp;&nbsp;';
+	openLinks += '<b class="openLinksB" data="pxalttitlelinks">Img alt/title ('+altCnt+')</b>&nbsp;&nbsp;|&nbsp;&nbsp;';
+	openLinks += '<b class="openLinksB" data="pxh16links">H1-H6 '+((hErr)?'<span class="red">('+hd.length+')':'('+hd.length+')')+'</b>';
 	openLinks += '</p>';
 
 	var topBS = document.createElement("style");
@@ -258,9 +256,31 @@ xhr.onload = function() {
 	block.appendChild(topBlock);
 	block.appendChild(linksData);
 	document.getElementsByTagName("body")[0].insertBefore(block,first);
-	
+
 	document.querySelector('div.pxtagblock b.close').onclick = function(){
 		var pxtblock = document.querySelector('div.pxtagblock');
 		document.getElementsByTagName('body')[0].removeChild(pxtblock);
+	}
+
+	var openLinksBlocks = document.querySelectorAll("div.pxtagblock b.openLinksB");
+	var pxtblocklinks = document.querySelectorAll("div.pxtblocklinks ol");
+	for(var i = 0; i < openLinksBlocks.length; i++){
+		openLinksBlocks[i].onclick = function(e){
+			for (var k = 0; k < pxtblocklinks.length; k++){
+				var currentBlock = pxtblocklinks[k];
+				if(e.target.getAttribute('data') != currentBlock.className){
+					currentBlock.classList.remove('active');
+					currentBlock.style.display = 'none';
+				}else{
+					if(currentBlock.classList.contains('active')){
+						currentBlock.classList.remove('active');
+						currentBlock.style.display = 'none';
+					}else{
+						currentBlock.classList.add('active');
+						currentBlock.style.display = 'block';
+					}
+				}
+			}
+		}
 	}
 }
