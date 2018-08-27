@@ -246,8 +246,12 @@ xhr.onload = function() {
 	document.getElementsByTagName("body")[0].appendChild(topBS);
 	var topBlock = document.createElement("div");
 	topBlock.className = 'pixelTopBlockWrp';
-	topBlock.innerHTML = '<div class="topBlock"><b class="close" onclick="javascript:(function(){var pxtblock=document.querySelector(\'div.pxtagblock\');document.getElementsByTagName(\'body\')[0].removeChild(pxtblock);})();">\u00d7</b>'+alertStr+openLinks+'</div>';
+	topBlock.innerHTML = '<div class="topBlock"><b class="close">\u00d7</b>'+alertStr+openLinks+'</div>';
 	var first=document.getElementsByTagName('body')[0].childNodes[0];
+	document.querySelector('div.pxtagblock b.close').onclick = function(){
+		var pxtblock = document.querySelector('div.pxtagblock');
+		document.getElementsByTagName('body')[0].removeChild(pxtblock);
+	}
 	
 	var linksData = document.createElement("div");
 	linksData.className = 'pxtblocklinks';
