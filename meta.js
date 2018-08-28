@@ -4,45 +4,46 @@ xhr.open('GET', window.location, true);
 xhr.send();
 xhr.onload = function() {
   var code = xhr.responseText;
-  if(code){
-    var codeB = true;
-  }else{
+  if(!code){
     alert('Не удалось получить код страницы.');
     return;
   }
-  var script = code.match( /<script.*?\>([\s\S]*?)<\/script\>/g );
-  code = code.replace(/\<script.*?\>.*?\<\/script\>/gi, ' ');
-  var comment = code.match( /<!--([\s\S]*?)-->/g );
-  code = code.replace(/\r|\n|\t/g, ' ');
-  code = code.replace(/<!--[\s\S]*?-->/gi, ' ');
-  code = code.replace(/<noscript.*?>.*?<\/noscript>/gi, ' ');
-  code = code.replace(/<style.*?>.*?<\/style>/gi, ' ');
-  codeB = code;
-  code = code.match( /<body.*?>.*<\/body>/i );
-  if(!code) code = codeB.match( /<body.*?>.*/i );
-  if(!code && codeB){
+  var parser = new DOMParser();
+  code = parser.parseFromString(code, "text/html");
+  var script = code.querySelectorAll('script');
+  function filterNone() {
+    return NodeFilter.FILTER_ACCEPT;
+  }
+  var codeBody = code.getElementsByTagName('body')[0];
+  if(!codeBody){
     alert('Не удалось проверить из-за ошибок в HTML коде. Проверьте код страницы на валидность.');
     return;
   }
+  var comment = [];
+  var iterator = document.createNodeIterator(codeBody, NodeFilter.SHOW_COMMENT, filterNone, false);
+  var curNode;
+  while (curNode = iterator.nextNode()) {
+    comment.push(curNode.nodeValue);
+  }
+  //функция для удаления в строке двойных пробелов
   function dsr(str){
     while(str.indexOf('  ') + 1){
       str = str.replace(/  /g, ' ');
     }
     return str;
   }
-  code = dsr(code[0]);
-  var h = code.match( /<h[0-6].*?>.*?<\/h[0-6]>/gi );
+  var h = codeBody.querySelectorAll('h1, h2, h3, h4, h5, h6');;
   if(!h) h = [];
   var hd = [];
-  for(var i=0;i<h.length;i++){
+  for(var i = 0; i < h.length; i++){
     hd[i] = []
-    hd[i]['head'] = h[i].substr(2, 1);
-    hd[i]['text'] = h[i].replace(/<.*?>/gi, '');
+    hd[i]['head'] = h[i].localName[1];
+    hd[i]['text'] = h[i].textContent;
   }
   
   var tempHeaders = [], hErr = false;
-  for(var i=0;i<hd.length;i++){
-    if(i==0){
+  for(var i = 0; i < hd.length; i++){
+    if(i == 0){
       if(hd[0]['head'] != 1){
         hd[0]['error'] = 'Первый заголовок не h1';
         tempHeaders[hd[0]['head']] = true;
@@ -79,34 +80,35 @@ xhr.onload = function() {
   
   var alertStr = '',
   openLinks = '',
-  descr = document.querySelector('meta[name=description]'),
-  keyw = document.querySelector('meta[name=keywords]'),
-  meta = document.querySelectorAll('meta'),
-  bcnt = document.querySelectorAll('b'),
-  strong = document.querySelectorAll('strong'),
-  em = document.querySelectorAll('em'),
-  links = document.querySelectorAll('a'),
+  descr = code.querySelector('head meta[name=description]'),
+  keyw = code.querySelector('head meta[name=keywords]'),
+  meta = code.querySelectorAll('head meta'),
+  bcnt = codeBody.querySelectorAll('b'),
+  strong = codeBody.querySelectorAll('strong'),
+  em = codeBody.querySelectorAll('em'),
+  links = codeBody.querySelectorAll('a'),
   externalLinks = '',
   externalLinksCnt = 0,
   internalLinks = '',
   internalLinksCnt = 0,
-  img = document.querySelectorAll('img'),
-  titleAttr = document.querySelectorAll('body [title]'),
+  img = codeBody.querySelectorAll('img'),
+  titleAttr = codeBody.querySelectorAll('body [title]'),
   altTitle = '',
   altCnt = 0,
   altStrCnt = 0,
   h16Str = '',
-  canonical = document.querySelector('link[rel=canonical]');
-  rnext = document.querySelector('link[rel=next]');
-  rprev = document.querySelector('link[rel=prev]');
+  canonical = code.querySelector('head link[rel=canonical]'),
+  rnext = code.querySelector('head link[rel=next]'),
+  rprev = code.querySelector('head link[rel=prev]'),
+  title = code.querySelector('head title');
   
   for(var i = 0; i<meta.length; i++){
     if(meta[i].name.toLowerCase() == 'description') descr = meta[i];
     if(meta[i].name.toLowerCase() == 'keywords') keyw = meta[i];
   }
   
-  if(document.title){
-    alertStr += '<p><b class="link_sim"  title="Скопировать title в буфер обмена" onclick="javascript:(function(){var ta=document.createElement(\'textarea\');var body=document.querySelector(\'body\');body.appendChild(ta);ta.innerHTML=document.title;ta.select();document.execCommand(\'copy\');body.removeChild(ta);})();">Title</b> <span '+((document.title.length<30 || document.title.length>150)?"class='red'":"")+'>('+ (document.title.length) +')</span>: '+document.title+'</p>';
+  if(title){
+    alertStr += '<p><b class="link_sim"  title="Скопировать title в буфер обмена" onclick="javascript:(function(){var ta=document.createElement(\'textarea\');var body=document.querySelector(\'body\');body.appendChild(ta);ta.innerHTML=document.title;ta.select();document.execCommand(\'copy\');body.removeChild(ta);})();">Title</b> <span '+((title.textContent.length < 30 || title.textContent.length > 150) ? "class='red'":"")+'>('+ (title.textContent.length) +')</span>: '+title.textContent+'</p>';
   }else{
     alertStr += '<p><b class="red">Title: отсутствует</b></p>';
   }
@@ -129,7 +131,7 @@ xhr.onload = function() {
     }
   }
   
-  for(var i=0;i<meta.length;i++){
+  for(var i = 0; i < meta.length; i++){
     if(meta[i].name.toLowerCase() == 'robots' || meta[i].name.toLowerCase() == 'yandex' || meta[i].name.toLowerCase() == 'googlebot'){
       alertStr += '<p><b>meta '+meta[i].name+':</b> '+((meta[i].content.indexOf('noindex') + 1 || meta[i].content.indexOf('nofollow') + 1)?"<b class='red'>"+meta[i].content+"</b>":meta[i].content)+'</p>';
     }
@@ -180,10 +182,10 @@ xhr.onload = function() {
     alertStr += '<p><b>HTML комментарии:</b> <span title="Количество HTML комментариев">'+comment.length + '</span> | <span title="Объем HTML комментариев (символов)">' + commentLen +'</span> | <span title="Длинна наибольшего комментария">'+maxCommentLen+'</span></p>';
   }
   
-  if(script && script.length>0){
+  if(script && script.length > 0){
     var scriptLen = 0;
-    for(var i=0; i<script.length; i++){
-      scriptLen += script[i].length - 7;
+    for(var i = 0; i < script.length; i++){
+      scriptLen += script[i].textContent.length;
     }
     alertStr += '<p><b>JS скрипты:</b> <span title="Количество внутренних JS">'+script.length + '</span> | <span title="Объем JS кода (символов)">' + scriptLen +'</span></p>';
   }
