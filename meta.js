@@ -20,7 +20,7 @@ xhr.onload = function() {
     return;
   }
   var comment = [];
-  var iterator = document.createNodeIterator(codeBody, NodeFilter.SHOW_COMMENT, filterNone, false);
+  var iterator = document.createNodeIterator(code, NodeFilter.SHOW_COMMENT, filterNone, false);
   var curNode;
   while (curNode = iterator.nextNode()) {
     comment.push(curNode.nodeValue);
@@ -80,9 +80,9 @@ xhr.onload = function() {
   
   var alertStr = '',
   openLinks = '',
-  descr = code.querySelector('head meta[name=description]'),
-  keyw = code.querySelector('head meta[name=keywords]'),
-  meta = code.querySelectorAll('head meta'),
+  descr = code.querySelector('head meta[name=description]') || document.querySelector('head meta[name=description]'),
+  keyw = code.querySelector('head meta[name=keywords]') || document.querySelector('head meta[name=keywords]'),
+  meta = code.querySelectorAll('head meta') || document.querySelectorAll('head meta'),
   bcnt = codeBody.querySelectorAll('b'),
   strong = codeBody.querySelectorAll('strong'),
   em = codeBody.querySelectorAll('em'),
@@ -97,18 +97,26 @@ xhr.onload = function() {
   altCnt = 0,
   altStrCnt = 0,
   h16Str = '',
-  canonical = code.querySelector('head link[rel=canonical]'),
-  rnext = code.querySelector('head link[rel=next]'),
-  rprev = code.querySelector('head link[rel=prev]'),
-  title = code.querySelector('head title');
+  canonical = code.querySelector('head link[rel=canonical]') || document.querySelector('head link[rel=canonical]'),
+  rnext = code.querySelector('head link[rel=next]') || document.querySelector('head link[rel=next]'),
+  rprev = code.querySelector('head link[rel=prev]') || document.querySelector('head link[rel=prev]'),
+	title = code.querySelector('head title') || document.querySelector('head title'),
+	codeText = '';
+	// на https://paybis.com/ не работает title и description
+	for(var i = 0; i < codeBody.childNodes.length; i++){
+		if(codeBody.childNodes[i].localName == "script"){
+			codeBody.removeChild(codeBody.childNodes[i]);
+		}
+	}
+	codeText = codeBody.textContent;
   
   for(var i = 0; i<meta.length; i++){
     if(meta[i].name.toLowerCase() == 'description') descr = meta[i];
     if(meta[i].name.toLowerCase() == 'keywords') keyw = meta[i];
   }
-  
+	
   if(title){
-    alertStr += '<p><b class="link_sim"  title="Скопировать title в буфер обмена" onclick="javascript:(function(){var ta=document.createElement(\'textarea\');var body=document.querySelector(\'body\');body.appendChild(ta);ta.innerHTML=document.title;ta.select();document.execCommand(\'copy\');body.removeChild(ta);})();">Title</b> <span '+((title.textContent.length < 30 || title.textContent.length > 150) ? "class='red'":"")+'>('+ (title.textContent.length) +')</span>: '+title.textContent+'</p>';
+    alertStr += '<p><b class="link_sim"  title="Скопировать title в буфер обмена">Title</b> <span '+((title.textContent.length < 30 || title.textContent.length > 150) ? "class='red'":"")+'>('+ (title.textContent.length) +'): </span>'+title.textContent+'</p>';
   }else{
     alertStr += '<p><b class="red">Title: отсутствует</b></p>';
   }
@@ -116,7 +124,7 @@ xhr.onload = function() {
   if(descr){
     descr = descr.content;
     if(descr){
-      alertStr += '<p><b class="link_sim" title="Скопировать description в буфер обмена" onclick="javascript:(function(){var ta=document.createElement(\'textarea\');var body=document.querySelector(\'body\');body.appendChild(ta);ta.innerHTML=document.querySelector(\'meta[name=description]\').content;ta.select();document.execCommand(\'copy\');body.removeChild(ta);})();">Description</b> <span '+((descr.length<50 || descr.length>250)?"class='red'":"")+'>('+ (descr.length) +')</span>: '+descr+'</p>';
+      alertStr += '<p><b class="link_sim" title="Скопировать description в буфер обмена">Description</b> <span '+((descr.length<50 || descr.length>250)?"class='red'":"")+'>('+ (descr.length) +'): </span>'+descr+'</p>';
     }else{
       alertStr += '<p><b class="red">Description: отсутствует</b></p>';
     }
@@ -233,16 +241,18 @@ xhr.onload = function() {
   for(var i=0;i<hd.length;i++){
     h16Str += '<li style="margin-left:'+((hd[i]['head']-1)*20)+'px"'+((hd[i]['error'])?' class="red" title="'+hd[i]['error']+'"':'')+'><span>H'+hd[i]['head']+' - '+hd[i]['text']+'</span></li>';
   }
+	
   openLinks += '<p>';
   openLinks += '<b class="openLinksB" data="pxexternallinks">External Links ('+externalLinksCnt+')</b>&nbsp;&nbsp;|&nbsp;&nbsp;';
   openLinks += '<b class="openLinksB" data="pxinternallinks">Internal Links ('+internalLinksCnt+')</b>&nbsp;&nbsp;|&nbsp;&nbsp;';
   openLinks += '<b class="openLinksB" data="pxalttitlelinks">Img alt/title ('+altCnt+')</b>&nbsp;&nbsp;|&nbsp;&nbsp;';
-  openLinks += '<b class="openLinksB" data="pxh16links">H1-H6 '+((hErr)?'<span class="red">('+hd.length+')':'('+hd.length+')')+'</b>';
+  openLinks += '<b class="openLinksB" data="pxh16links">H1-H6 '+((hErr)?'<span class="red">('+hd.length+')':'('+hd.length+')')+'</b>&nbsp;&nbsp;|&nbsp;&nbsp;';
+  openLinks += '<b class="openLinksB" data="pxtext">Текст</b>';
   openLinks += '</p>';
 
   var topBS = document.createElement("style");
   topBS.setAttribute("type", "text/css");
-  topBS.innerHTML = ".pixelTopBlockWrp{position:relative;width:100%;top:0;left:0;background:#f8f8f8;z-index:999999;text-align:left;border-bottom:1px solid #9D9DA1;color:#000;font-family:arial;max-height:50%;overflow-y:auto;}.pixelTopBlockWrp .close {float:right;cursor:pointer;color:#000;font-size: 24px;line-height: 0;padding: 8px 0 0;}.topBlock{padding:5px 10px;font-size:14px;line-height: 16px;}.topBlock p{margin:0 0 0.3em 0 !important; padding:0px; line-height: 1.2em;font-size:14px;}.pxtblocklinks OL{margin:0px 15px;padding:0 0 0 40px;list-style:decimal;display:none;}.pxtblocklinks OL LI {color: #000;margin-bottom: 3px;display:block;font-size:14px;}.pxtblocklinks {width:70%;left:15%;position:relative;background:#fff;z-index:99999;box-shadow:0 3px 10px #000;font-size:14px;word-wrap: break-word;}.pxexternallinks, .pxinternallinks, .pxalttitlelinks, .pxh16links{margin:0px 15px;padding: 0 0 0 20px;list-style:decimal;display:none;height:500px;overflow:auto;} .pxh16links span:hover {cursor:pointer;border-bottom:1px solid;}.openLinksB{border-bottom:1px dashed #000;cursor:pointer;} .openLinksB:hover {border-bottom: none;} .pixelTopBlockWrp b, p{color:#000;}.pxtblocklinks a{color:#000;text-decoration:none;} .pxtblocklinks a:hover{border-bottom:1px solid;}.pixelTopBlockWrp b{font-weight:bold;}.topBlock .red, .pxtblocklinks .red {color:red;} .link_sim{text-decoration:underline;} .link_sim:hover{cursor:pointer; text-decoration:none;color:blue;} .topBlock a{color:black;}";
+  topBS.innerHTML = ".pixelTopBlockWrp{position:relative;width:100%;top:0;left:0;background:#f8f8f8;z-index:999999;text-align:left;border-bottom:1px solid #9D9DA1;color:#000;font-family:arial;max-height:50%;overflow-y:auto;}.pixelTopBlockWrp .close {float:right;cursor:pointer;color:#000;font-size: 24px;line-height: 0;padding: 8px 0 0;}.topBlock{padding:5px 10px;font-size:14px;line-height: 16px;}.topBlock p{margin:0 0 0.3em 0 !important; padding:0px; line-height: 1.2em;font-size:14px;}.pxtblocklinks OL{margin:0px 15px;padding:0 0 0 40px;list-style:decimal;display:none;}.pxtblocklinks OL LI {color: #000;margin-bottom: 3px;display:block;font-size:14px;}.pxtblocklinks {width:70%;left:15%;position:relative;background:#fff;z-index:99999;box-shadow:0 3px 10px #000;font-size:14px;word-wrap: break-word;}.pxexternallinks, .pxinternallinks, .pxalttitlelinks, .pxh16links{margin:0px 15px;padding: 0 0 0 20px;list-style:decimal;display:none;height:500px;overflow:auto;} .pxh16links span:hover {cursor:pointer;border-bottom:1px solid;}.openLinksB{border-bottom:1px dashed #000;cursor:pointer;} .openLinksB:hover {border-bottom: none;} .pixelTopBlockWrp b, p{color:#000;}.pxtblocklinks a{color:#000;text-decoration:none;} .pxtblocklinks a:hover{border-bottom:1px solid;}.pixelTopBlockWrp b{font-weight:bold;}.topBlock .red, .pxtblocklinks .red {color:red;} .link_sim{text-decoration:underline;} .link_sim:hover{cursor:pointer; text-decoration:none;color:blue;} .topBlock a{color:black;} .pxtext{margin:0px 15px;padding: 0 20px 0 20px !important;display:none;height:500px;overflow:auto;}";
   document.getElementsByTagName("body")[0].appendChild(topBS);
   var topBlock = document.createElement("div");
   topBlock.className = 'pixelTopBlockWrp';
@@ -251,7 +261,7 @@ xhr.onload = function() {
   
   var linksData = document.createElement("div");
   linksData.className = 'pxtblocklinks';
-  linksData.innerHTML = '<ol class="pxexternallinks">'+externalLinks+'</ol><ol class="pxinternallinks">'+internalLinks+'</ol><ol class="pxalttitlelinks">'+altTitle+'</ol><ol class="pxh16links" style="list-style:none;">'+h16Str+'<ol>';
+  linksData.innerHTML = '<ol class="pxexternallinks">'+externalLinks+'</ol><ol class="pxinternallinks">'+internalLinks+'</ol><ol class="pxalttitlelinks">'+altTitle+'</ol><ol class="pxh16links" style="list-style:none;">'+h16Str+'</ol><ol class="pxtext">'+codeText+'</ol>';
   var block = document.createElement("div");
   block.style = 'position:fixed;z-index:9999999999999;width:100%;top:0px;left:0px;';
   block.className = 'pxtblock pxtagblock';
@@ -263,6 +273,20 @@ xhr.onload = function() {
     var pxtblock = document.querySelector('div.pxtagblock');
     document.getElementsByTagName('body')[0].removeChild(pxtblock);
   }
+  
+  var copyLink = document.querySelectorAll('b.link_sim');
+  for (var i = 0; i < copyLink.length; i++){
+    copyLink[i].onclick = function(e){
+      var ta = document.createElement('textarea');
+      var body = document.querySelector('body');
+      body.appendChild(ta);
+      ta.innerHTML = e.target.parentNode.lastChild.nodeValue;
+      ta.select();
+      document.execCommand('copy');
+      body.removeChild(ta);
+    }
+  }
+
 
   var openLinksBlocks = document.querySelectorAll("div.pxtagblock b.openLinksB");
   var pxtblocklinks = document.querySelectorAll("div.pxtblocklinks ol");
