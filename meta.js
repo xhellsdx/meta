@@ -101,15 +101,13 @@ xhr.onload = function() {
   rnext = code.querySelector('head link[rel=next]') || document.querySelector('head link[rel=next]'),
   rprev = code.querySelector('head link[rel=prev]') || document.querySelector('head link[rel=prev]'),
 	title = code.querySelector('head title') || document.querySelector('head title'),
-	codeText = '';
-	// на https://paybis.com/ не работает title и description
-	for(var i = 0; i < codeBody.childNodes.length; i++){
-		if(codeBody.childNodes[i].localName == "script"){
-			codeBody.removeChild(codeBody.childNodes[i]);
-		}
-	}
-	codeText = codeBody.textContent;
+	codeScriptsDel = '';
+  // на https://paybis.com/ не работает title и description
   
+  codeScriptsDel = code.getElementsByTagName('html')[0].outerHTML.replace(/\<script.*?\>[\s\S]*?\<\/script\>/gim, ' ');
+  codeScriptsDel = parser.parseFromString(codeScriptsDel, "text/html");
+  codeScriptsDel = codeScriptsDel.getElementsByTagName('body')[0].textContent.replace(/[\t ]{2,}/gi, ' ').replace(/\s{2,}/gim, '<br><br>');
+
   for(var i = 0; i<meta.length; i++){
     if(meta[i].name.toLowerCase() == 'description') descr = meta[i];
     if(meta[i].name.toLowerCase() == 'keywords') keyw = meta[i];
@@ -182,7 +180,7 @@ xhr.onload = function() {
     var commentLen = 0;
     var maxCommentLen = 0;
     for(var i=0; i<comment.length; i++){
-      commentLen += comment[i].length - 7;
+      commentLen += comment[i].length;
       if(comment[i].length - 7 > maxCommentLen){
         maxCommentLen = comment[i].length - 7;
       }
@@ -261,7 +259,7 @@ xhr.onload = function() {
   
   var linksData = document.createElement("div");
   linksData.className = 'pxtblocklinks';
-  linksData.innerHTML = '<ol class="pxexternallinks">'+externalLinks+'</ol><ol class="pxinternallinks">'+internalLinks+'</ol><ol class="pxalttitlelinks">'+altTitle+'</ol><ol class="pxh16links" style="list-style:none;">'+h16Str+'</ol><ol class="pxtext">'+codeText+'</ol>';
+  linksData.innerHTML = '<ol class="pxexternallinks">'+externalLinks+'</ol><ol class="pxinternallinks">'+internalLinks+'</ol><ol class="pxalttitlelinks">'+altTitle+'</ol><ol class="pxh16links" style="list-style:none;">'+h16Str+'</ol><ol class="pxtext">'+codeScriptsDel+'</ol>';
   var block = document.createElement("div");
   block.style = 'position:fixed;z-index:9999999999999;width:100%;top:0px;left:0px;';
   block.className = 'pxtblock pxtagblock';
