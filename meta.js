@@ -80,9 +80,9 @@ xhr.onload = function() {
   
   var alertStr = '',
   openLinks = '',
-  descr = code.querySelector('head meta[name=description]') || document.querySelector('head meta[name=description]'),
-  keyw = code.querySelector('head meta[name=keywords]') || document.querySelector('head meta[name=keywords]'),
-  meta = code.querySelectorAll('head meta') || document.querySelectorAll('head meta'),
+  descr = code.querySelector('meta[name=description]') || document.querySelector('meta[name=description]'),
+  keyw = code.querySelector('meta[name=keywords]') || document.querySelector('meta[name=keywords]'),
+  meta = code.querySelectorAll('meta') || document.querySelectorAll('meta'),
   bcnt = codeBody.querySelectorAll('b'),
   strong = codeBody.querySelectorAll('strong'),
   em = codeBody.querySelectorAll('em'),
@@ -97,10 +97,10 @@ xhr.onload = function() {
   altCnt = 0,
   altStrCnt = 0,
   h16Str = '',
-  canonical = code.querySelector('head link[rel=canonical]') || document.querySelector('head link[rel=canonical]'),
-  rnext = code.querySelector('head link[rel=next]') || document.querySelector('head link[rel=next]'),
-  rprev = code.querySelector('head link[rel=prev]') || document.querySelector('head link[rel=prev]'),
-	title = code.querySelector('head title') || document.querySelector('head title'),
+  canonical = code.querySelector('link[rel=canonical]') || document.querySelector('head link[rel=canonical]'),
+  rnext = code.querySelector('link[rel=next]') || document.querySelector('link[rel=next]'),
+  rprev = code.querySelector('link[rel=prev]') || document.querySelector('link[rel=prev]'),
+	title = code.querySelector('title') || document.querySelector('title'),
 	codeScriptsDel = '';
   // на https://paybis.com/ не работает title и description
   
