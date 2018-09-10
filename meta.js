@@ -19,6 +19,8 @@ xhr.onload = function() {
     alert('Не удалось проверить из-за ошибок в HTML коде. Проверьте код страницы на валидность.');
     return;
   }
+  var bodyText = codeBody.innerText.replace(/[\r\n\t]/gi, ' ');
+  bodyText = dsr(bodyText);
   var comment = [];
   var iterator = document.createNodeIterator(code, NodeFilter.SHOW_COMMENT, filterNone, false);
   var curNode;
@@ -234,6 +236,7 @@ xhr.onload = function() {
     }
   }
   alertStr += '<p><b>alt + title:</b> <span title="Объем атрибутов a[alt] title (символов)">'+ altStrCnt +'</span></p>';
+  alertStr += '<p><b>Объем текста:</b> <span title="Символов без пробелов">'+ bodyText.replace(/\s/gi, '').length +'</span> | <span title="Символов с пробелами">'+ bodyText.length +'</span></p>';
   
   
   for(var i=0;i<hd.length;i++){
