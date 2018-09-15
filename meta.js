@@ -106,7 +106,7 @@ xhr.onload = function() {
 	codeScriptsDel = '';
   // на https://paybis.com/ не работает title и description
   
-  codeScriptsDel = code.getElementsByTagName('html')[0].outerHTML.replace(/\<script.*?\>[\s\S]*?\<\/script\>/gim, ' ');
+  codeScriptsDel = code.getElementsByTagName('html')[0].outerHTML.replace(/\<script.*?\>[\s\S]*?\<\/script\>/gim, ' ').replace(/\<style.*?\>[\s\S]*?\<\/style\>/gim, ' ');
   codeScriptsDel = parser.parseFromString(codeScriptsDel, "text/html");
   codeScriptsDel = codeScriptsDel.getElementsByTagName('body')[0].textContent.replace(/[\t ]{2,}/gi, ' ').replace(/\s{2,}/gim, '<br><br>');
 
